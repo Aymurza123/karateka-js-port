@@ -1,15 +1,15 @@
 # karateka-js-port
 
-Refactored to use deterministic fixed-timestep simulation throughout the port.
+Deterministic JavaScript port scaffolding for Karateka with strict fixed-step simulation, integer-only world state, and pixel-accurate logical rendering.
 
-## Deterministic simulation
+## Run in browser
 
-- `FixedStepClock` (`src/fixed-timestep.js`) advances world state in fixed-size ticks.
-- `DeterministicSimulation` (`src/port.js`) executes all simulation systems (physics, AI, animation, etc.) on the same fixed tick.
-- Frame/render timing differences only change **how many** ticks run during a frame, never tick size.
+Open `index.html` in a modern browser.
 
-## Run tests
+## Deterministic validation
 
 ```bash
 npm test
 ```
+
+Validation tests assert that state transitions and animation logs are identical between runs.
