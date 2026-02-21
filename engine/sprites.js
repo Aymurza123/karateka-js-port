@@ -38,6 +38,9 @@ export function createAnimationState() {
     enemyFrameIndex: 0,
     frameCounter: 0,
     frameLog: [],
+    activePose: 'intro',
+    playerSpriteName: 'idle',
+    enemySpriteName: 'idle',
   };
 }
 

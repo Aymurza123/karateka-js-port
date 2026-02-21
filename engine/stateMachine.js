@@ -22,6 +22,7 @@ export class KaratekaStateMachine {
     this.stateTick = 0;
     this.pendingCombatResult = 'victory';
     this.transitionLog = [`0:${this.state}`];
+    this.pendingCombatResult = 'victory';
   }
 
   setState(nextState, tick) {
@@ -30,7 +31,7 @@ export class KaratekaStateMachine {
     this.transitionLog.push(`${tick}:${nextState}`);
   }
 
-  update(tick, combatResult = 'victory') {
+  update(tick, world) {
     this.stateTick += 1;
     const stateRow = STATE_TABLE[this.state];
 
