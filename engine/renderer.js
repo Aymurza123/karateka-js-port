@@ -1,3 +1,6 @@
+import { ACTOR_SPRITES, PALETTE } from './spriteData.js';
+import { getEnemyFrame, getPlayerFrame } from './sprites.js';
+
 export const LOGICAL_WIDTH = 280;
 export const LOGICAL_HEIGHT = 192;
 export const SCALE = 3;
@@ -20,23 +23,50 @@ export class Renderer {
     this.backContext.imageSmoothingEnabled = false;
   }
 
-  drawRect(x, y, width, height, color) {
+  drawSprite(frame, x, y) {
+    for (let row = 0; row < frame.height; row += 1) {
+      const data = frame.rows[row];
+      for (let col = 0; col < frame.width; col += 1) {
+        const paletteKey = data[col];
+        const color = PALETTE[paletteKey];
+        if (!color) {
+          continue;
+        }
+
+        this.backContext.fillStyle = color;
+        this.backContext.fillRect(x + col, y + row, 1, 1);
+      }
+    }
+  }
+
+  drawHealth(x, y, width, value, color) {
+    this.backContext.fillStyle = '#151515';
+    this.backContext.fillRect(x, y, width, 5);
     this.backContext.fillStyle = color;
-    this.backContext.fillRect(x, y, width, height);
+    this.backContext.fillRect(x, y, Math.floor((width * value) / 100), 5);
   }
 
   render(world) {
-    this.backContext.fillStyle = '#000000';
+    this.backContext.fillStyle = '#0a1024';
     this.backContext.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
-    this.drawRect(0, 160, LOGICAL_WIDTH, 32, '#303030');
+    this.backContext.fillStyle = '#121212';
+    this.backContext.fillRect(0, 148, LOGICAL_WIDTH, 44);
 
-    this.drawRect(world.physics.playerX, world.physics.playerY, 10, 24, '#f0f0f0');
-    this.drawRect(world.physics.enemyX, world.physics.enemyY, 10, 24, '#d04040');
+    this.backContext.fillStyle = '#473420';
+    this.backContext.fillRect(0, 160, LOGICAL_WIDTH, 8);
 
-    this.backContext.fillStyle = '#00ff00';
-    this.backContext.fillText(`state:${world.stateMachine.state}`, 8, 12);
-    this.backContext.fillText(`tick:${world.tick}`, 8, 24);
+    const playerFrame = ACTOR_SPRITES.player[getPlayerFrame(world.stateMachine.state, world.animation)];
+    const enemyFrame = ACTOR_SPRITES.enemy[getEnemyFrame(world.stateMachine.state, world.animation)];
+
+    this.drawSprite(playerFrame, world.physics.playerX, world.physics.playerY);
+    this.drawSprite(enemyFrame, world.physics.enemyX, world.physics.enemyY);
+
+    this.drawHealth(12, 10, 100, world.combat.playerHealth, '#95c57f');
+    this.drawHealth(168, 10, 100, world.combat.enemyHealth, '#c57f7f');
+
+    this.backContext.fillStyle = '#f0f0f0';
+    this.backContext.fillText(world.stateMachine.state, 126, 14);
 
     this.frontContext.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
     this.frontContext.drawImage(this.backBuffer, 0, 0);

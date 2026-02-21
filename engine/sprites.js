@@ -1,28 +1,46 @@
-const PLAYER_ANIMATION = Object.freeze({
-  intro: [0, 1, 2, 1],
-  approach: [3, 4, 5, 4],
-  combat: [6, 7, 8, 7],
-  transition: [9, 10],
-  victory: [11, 12],
-  death: [13, 14],
+export const PLAYER_ANIMATION = Object.freeze({
+  intro: ['idle'],
+  approach: ['walk1', 'idle', 'walk2', 'idle'],
+  combat_idle: ['idle'],
+  player_punch: ['punch', 'idle'],
+  player_kick: ['kick', 'idle'],
+  player_hurt: ['hurt', 'idle'],
+  enemy_punch: ['idle'],
+  enemy_kick: ['idle'],
+  enemy_hurt: ['idle'],
+  transition: ['idle'],
+  victory: ['victory'],
+  death: ['death'],
 });
 
-const ENEMY_ANIMATION = Object.freeze({
-  intro: [0],
-  approach: [1],
-  combat: [2, 3],
-  transition: [4],
-  victory: [5],
-  death: [6],
+export const ENEMY_ANIMATION = Object.freeze({
+  intro: ['idle'],
+  approach: ['walk1', 'idle', 'walk2', 'idle'],
+  combat_idle: ['idle'],
+  player_punch: ['idle'],
+  player_kick: ['idle'],
+  player_hurt: ['hurt', 'idle'],
+  enemy_punch: ['punch', 'idle'],
+  enemy_kick: ['kick', 'idle'],
+  enemy_hurt: ['hurt', 'idle'],
+  transition: ['idle'],
+  victory: ['victory'],
+  death: ['death'],
 });
 
 const FRAME_DURATIONS = Object.freeze({
-  intro: 10,
-  approach: 6,
-  combat: 5,
+  intro: 14,
+  approach: 8,
+  combat_idle: 10,
+  player_punch: 5,
+  player_kick: 7,
+  player_hurt: 6,
+  enemy_punch: 5,
+  enemy_kick: 7,
+  enemy_hurt: 6,
   transition: 8,
-  victory: 12,
-  death: 12,
+  victory: 14,
+  death: 14,
 });
 
 export function createAnimationState() {
@@ -31,31 +49,46 @@ export function createAnimationState() {
     enemyFrameIndex: 0,
     frameCounter: 0,
     frameLog: [],
+    activePose: 'intro',
+    playerSpriteName: 'idle',
+    enemySpriteName: 'idle',
   };
 }
 
-export function updateAnimation(animationState, gameState, tick) {
+function resolvePose(world) {
+  if (world.stateMachine.state === 'combat') {
+    return world.combat.currentAction;
+  }
+
+  return world.stateMachine.state;
+}
+
+export function updateAnimation(animationState, world) {
+  const pose = resolvePose(world);
+  animationState.activePose = pose;
   animationState.frameCounter += 1;
-  const frameDuration = FRAME_DURATIONS[gameState];
+  const frameDuration = FRAME_DURATIONS[pose] ?? 8;
 
   if (animationState.frameCounter >= frameDuration) {
     animationState.frameCounter = 0;
-    const playerFrames = PLAYER_ANIMATION[gameState];
-    const enemyFrames = ENEMY_ANIMATION[gameState];
+    const playerFrames = PLAYER_ANIMATION[pose] ?? PLAYER_ANIMATION.combat_idle;
+    const enemyFrames = ENEMY_ANIMATION[pose] ?? ENEMY_ANIMATION.combat_idle;
 
     animationState.playerFrameIndex = (animationState.playerFrameIndex + 1) % playerFrames.length;
     animationState.enemyFrameIndex = (animationState.enemyFrameIndex + 1) % enemyFrames.length;
+    animationState.playerSpriteName = playerFrames[animationState.playerFrameIndex];
+    animationState.enemySpriteName = enemyFrames[animationState.enemyFrameIndex];
 
-    const playerFrame = playerFrames[animationState.playerFrameIndex];
-    const enemyFrame = enemyFrames[animationState.enemyFrameIndex];
-    animationState.frameLog.push(`${tick}:P${playerFrame}-E${enemyFrame}`);
+    animationState.frameLog.push(
+      `${world.tick}:P${animationState.playerSpriteName}-E${animationState.enemySpriteName}-${pose}`,
+    );
   }
 }
 
-export function getPlayerFrame(gameState, animationState) {
-  return PLAYER_ANIMATION[gameState][animationState.playerFrameIndex];
+export function getPlayerFrame(_gameState, animationState) {
+  return animationState.playerSpriteName;
 }
 
-export function getEnemyFrame(gameState, animationState) {
-  return ENEMY_ANIMATION[gameState][animationState.enemyFrameIndex];
+export function getEnemyFrame(_gameState, animationState) {
+  return animationState.enemySpriteName;
 }
