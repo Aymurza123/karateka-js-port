@@ -2,33 +2,35 @@ import { GAME_STATES } from './stateMachine.js';
 
 export function createPhysicsState() {
   return {
-    playerX: 24,
-    playerY: 144,
-    playerVx: 1,
-    enemyX: 220,
-    enemyY: 144,
-    enemyVx: -1,
+    playerX: 28,
+    playerY: 142,
+    playerVx: 0,
+    enemyX: 222,
+    enemyY: 142,
+    enemyVx: 0,
     collision: 0,
+    distance: 194,
   };
 }
 
-export function updatePhysics(state, gameState) {
-  if (gameState === GAME_STATES.APPROACH) {
-    state.playerX += state.playerVx;
-  }
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
 
-  if (gameState === GAME_STATES.COMBAT) {
+export function updatePhysics(state, gameState) {
+  if (gameState === GAME_STATES.APPROACH || gameState === GAME_STATES.COMBAT) {
     state.playerX += state.playerVx;
     state.enemyX += state.enemyVx;
   }
 
-  if (state.playerX < 8) {
-    state.playerX = 8;
+  state.playerX = clamp(state.playerX, 8, 256);
+  state.enemyX = clamp(state.enemyX, 20, 272);
+
+  const minSpacing = 20;
+  if (state.enemyX - state.playerX < minSpacing) {
+    state.enemyX = state.playerX + minSpacing;
   }
 
-  if (state.playerX > 256) {
-    state.playerX = 256;
-  }
-
-  state.collision = Math.abs(state.enemyX - state.playerX) <= 14 ? 1 : 0;
+  state.distance = state.enemyX - state.playerX;
+  state.collision = state.distance <= 24 ? 1 : 0;
 }
